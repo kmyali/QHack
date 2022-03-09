@@ -1,5 +1,5 @@
 #! /usr/bin/python3
-
+# cat 2.in | python order_matters_template.py
 import sys
 import pennylane as qml
 from pennylane import numpy as np
@@ -18,9 +18,30 @@ def compare_circuits(angles):
     # QHACK #
 
     # define a device and quantum functions/circuits here
+    dev1 = qml.device("default.qubit", wires=2)
 
-    # QHACK #
+    @qml.qnode(dev1)
+    def circuit1(angles):
+        qml.RX(angles[0], wires=0)
+        qml.RY(angles[1], wires=0)
+        return qml.expval(qml.PauliX(0))
 
+    @qml.qnode(dev1)
+    def circuit2(angles):
+        qml.RY(angles[1], wires=1)
+        qml.RX(angles[0], wires=1)
+        return qml.expval(qml.PauliX(1))
+    
+    drawCircuits(angles, [circuit1, circuit2])
+
+    result = circuit1(angles) - circuit2(angles)
+    return np.absolute(result)
+
+def drawCircuits(angles, circuits):
+    for circuit in circuits:
+        drawer1 = qml.draw(circuit) 
+        print(drawer1(angles))
+    
 
 if __name__ == "__main__":
     # DO NOT MODIFY anything in this code block
